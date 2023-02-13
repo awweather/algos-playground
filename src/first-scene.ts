@@ -77,8 +77,51 @@ export class BST {
 
     return Math.max(this.maxDepth(tree.left), this.maxDepth(tree.right)) + 1;
   }
-  preOrderTraversal() {}
-  postOrderTraversal() {}
+  async preOrderTraversal(
+    root: BST | null,
+    maxDepth: number,
+    currentDepth: number
+  ) {
+    if (!root) return;
+    this.highlightNode(root);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    this.unhighlightNode(root);
+
+    await this.preOrderTraversal(root.left, maxDepth, currentDepth + 1);
+
+    this.highlightNode(root);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    this.unhighlightNode(root);
+
+    await this.preOrderTraversal(root.right, maxDepth, currentDepth + 1);
+    this.highlightNode(root);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    this.unhighlightNode(root);
+  }
+  async postOrderTraversal(
+    root: BST | null,
+    maxDepth: number,
+    currentDepth: number
+  ) {
+    if (!root) return;
+
+    // this.highlightNode(root);
+    // await new Promise((resolve) => setTimeout(resolve, 500));
+    // this.unhighlightNode(root);
+
+    await this.postOrderTraversal(root.left, maxDepth, currentDepth + 1);
+
+    if (currentDepth !== 0) {
+      this.highlightNode(root);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      this.unhighlightNode(root);
+    }
+
+    await this.postOrderTraversal(root.right, maxDepth, currentDepth + 1);
+    this.highlightNode(root);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    this.unhighlightNode(root);
+  }
   highlightNode(node: BST) {
     node.circle.setFillStyle(0x00ff00);
   }
@@ -93,9 +136,11 @@ export class BST {
   ) {
     if (!root) return;
 
-    this.highlightNode(root);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    this.unhighlightNode(root);
+    if (currentDepth !== 0) {
+      this.highlightNode(root);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      this.unhighlightNode(root);
+    }
 
     await this.inOrderTraversal(root.left, maxDepth, currentDepth + 1);
 
@@ -104,9 +149,11 @@ export class BST {
     this.unhighlightNode(root);
 
     await this.inOrderTraversal(root.right, maxDepth, currentDepth + 1);
-    this.highlightNode(root);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    this.unhighlightNode(root);
+    if (currentDepth !== 0) {
+      this.highlightNode(root);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      this.unhighlightNode(root);
+    }
   }
 
   contains(value: number) {
@@ -145,7 +192,7 @@ export class FirstGameScene extends Phaser.Scene {
     });
   }
 
-  create() {
+  async create() {
     // Create the initial tree using the BST class
     const tree = new BST(50, this, 300, 100);
     tree.insert(20, tree);
@@ -161,7 +208,10 @@ export class FirstGameScene extends Phaser.Scene {
     tree.insert(80, tree);
 
     const maxDepth = tree.maxDepth(tree);
-    tree.inOrderTraversal(tree, maxDepth, 0);
+    await tree.inOrderTraversal(tree, maxDepth, 0);
+
+    //await tree.postOrderTraversal(tree, maxDepth, 0);
+    //await tree.preOrderTraversal(tree, maxDepth, 0);
     // Create the graphical representation of the tree
 
     // this.createGraphicsForTree(tree, 0, 25, 300, 300);
