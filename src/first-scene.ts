@@ -83,6 +83,9 @@ export class BST {
     await new Promise((resolve) => setTimeout(resolve, 500));
     root.circle.setFillStyle(0xff0000, 1);
     await this.inOrderTraversal(root.right, maxDepth, currentDepth + 1);
+    root.circle.setFillStyle(0xffff00, 1);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    root.circle.setFillStyle(0xff0000, 1);
   }
 
   contains(value: number) {
