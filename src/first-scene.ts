@@ -80,36 +80,36 @@ export class BST {
   async preOrderTraversal(
     root: BST | null,
     maxDepth: number,
-    currentDepth: number
+    currentDepth: number,
+    array: number[]
   ) {
-    if (!root) return;
+    if (!root) return array;
+
+    array.push(root.value);
     this.highlightNode(root);
     await new Promise((resolve) => setTimeout(resolve, 500));
     this.unhighlightNode(root);
 
-    await this.preOrderTraversal(root.left, maxDepth, currentDepth + 1);
+    await this.preOrderTraversal(root.left, maxDepth, currentDepth + 1, array);
 
     this.highlightNode(root);
     await new Promise((resolve) => setTimeout(resolve, 500));
     this.unhighlightNode(root);
 
-    await this.preOrderTraversal(root.right, maxDepth, currentDepth + 1);
+    await this.preOrderTraversal(root.right, maxDepth, currentDepth + 1, array);
     this.highlightNode(root);
     await new Promise((resolve) => setTimeout(resolve, 500));
     this.unhighlightNode(root);
+
+    return array;
   }
   async postOrderTraversal(
     root: BST | null,
     maxDepth: number,
-    currentDepth: number
+    currentDepth: number,
+    array: number[]
   ) {
-    if (!root) return;
-
-    // this.highlightNode(root);
-    // await new Promise((resolve) => setTimeout(resolve, 500));
-    // this.unhighlightNode(root);
-
-    await this.postOrderTraversal(root.left, maxDepth, currentDepth + 1);
+    if (!root) return array;
 
     if (currentDepth !== 0) {
       this.highlightNode(root);
@@ -117,10 +117,26 @@ export class BST {
       this.unhighlightNode(root);
     }
 
-    await this.postOrderTraversal(root.right, maxDepth, currentDepth + 1);
+    await this.postOrderTraversal(root.left, maxDepth, currentDepth + 1, array);
+
+    if (currentDepth !== 0) {
+      this.highlightNode(root);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      this.unhighlightNode(root);
+    }
+
+    await this.postOrderTraversal(
+      root.right,
+      maxDepth,
+      currentDepth + 1,
+      array
+    );
     this.highlightNode(root);
     await new Promise((resolve) => setTimeout(resolve, 500));
     this.unhighlightNode(root);
+
+    array.push(root.value);
+    return array;
   }
   highlightNode(node: BST) {
     node.circle.setFillStyle(0x00ff00);
@@ -132,9 +148,10 @@ export class BST {
   async inOrderTraversal(
     root: BST | null,
     maxDepth: number,
-    currentDepth: number
-  ) {
-    if (!root) return;
+    currentDepth: number,
+    array: number[]
+  ): Promise<number[]> {
+    if (!root) return array;
 
     if (currentDepth !== 0) {
       this.highlightNode(root);
@@ -142,18 +159,21 @@ export class BST {
       this.unhighlightNode(root);
     }
 
-    await this.inOrderTraversal(root.left, maxDepth, currentDepth + 1);
+    await this.inOrderTraversal(root.left, maxDepth, currentDepth + 1, array);
 
     this.highlightNode(root);
     await new Promise((resolve) => setTimeout(resolve, 500));
     this.unhighlightNode(root);
 
-    await this.inOrderTraversal(root.right, maxDepth, currentDepth + 1);
+    array.push(root.value);
+    await this.inOrderTraversal(root.right, maxDepth, currentDepth + 1, array);
     if (currentDepth !== 0) {
       this.highlightNode(root);
       await new Promise((resolve) => setTimeout(resolve, 500));
       this.unhighlightNode(root);
     }
+
+    return array;
   }
 
   contains(value: number) {
@@ -208,95 +228,17 @@ export class FirstGameScene extends Phaser.Scene {
     tree.insert(80, tree);
 
     const maxDepth = tree.maxDepth(tree);
-    await tree.inOrderTraversal(tree, maxDepth, 0);
+    // const result = await tree.inOrderTraversal(tree, maxDepth, 0, []);
 
-    //await tree.postOrderTraversal(tree, maxDepth, 0);
-    //await tree.preOrderTraversal(tree, maxDepth, 0);
+    // const result = await tree.postOrderTraversal(tree, maxDepth, 0, []);
+
+    const result = await tree.preOrderTraversal(tree, maxDepth, 0, []);
+    console.log(result);
+
     // Create the graphical representation of the tree
 
     // this.createGraphicsForTree(tree, 0, 25, 300, 300);
   }
 
-  createGraphicsForTree(
-    node: BST | null,
-    depth: number,
-    nodeDistance: number,
-    startX: number,
-    startY: number
-  ): void {
-    if (!node) {
-      return;
-    }
-
-    this.add.circle(startX, startY, 20, 0xff0000);
-    this.add.text(startX, startY, node.value.toString());
-
-    depth++;
-
-    this.createGraphicsForTree(
-      node.left,
-      depth,
-      nodeDistance,
-      startX - 50,
-      startY + 50
-    );
-    this.createGraphicsForTree(
-      node.right,
-      depth + 1,
-      nodeDistance,
-      startX + 50,
-      startY + 50
-    );
-  }
-
-  // updateGraphicsForTree(tree: BST, graphics: any) {
-  //   // Clear existing graphics
-  //   graphics.clear();
-
-  //   // Recursively draw nodes for the tree
-  //   function drawNode(node: BST, x: number, y: number) {
-  //     if (!node) return;
-
-  //     // Draw a circle for the node
-  //     graphics.fillCircle(x, y, nodeRadius);
-
-  //     // Draw lines to children nodes
-  //     if (node.left) {
-  //       graphics.lineStyle(lineThickness, lineColor);
-  //       graphics.moveTo(x, y);
-  //       graphics.lineTo(x - nodeDistance, y + nodeDistance);
-  //       drawNode(node.left, x - nodeDistance, y + nodeDistance);
-  //     }
-  //     if (node.right) {
-  //       graphics.lineStyle(lineThickness, lineColor);
-  //       graphics.moveTo(x, y);
-  //       graphics.lineTo(x + nodeDistance, y + nodeDistance);
-  //       drawNode(node.right, x + nodeDistance, y + nodeDistance);
-  //     }
-  //   }
-
-  //   drawNode(tree, treeX, treeY);
-  // }
-  highlightNode(
-    tree: BST | null,
-    value: number,
-    graphics: Phaser.GameObjects.Graphics
-  ) {
-    if (!tree) {
-      return;
-    }
-
-    if (tree.value === value) {
-      graphics.fillStyle(0xff0000, 1);
-    } else {
-      graphics.fillStyle(0x000000, 1);
-    }
-
-    graphics.fillCircle(tree.x, tree.y, 10);
-    // graphics.fillText(tree.value.toString(), tree.x, tree.y);
-
-    this.highlightNode(tree.left, value, graphics);
-    this.highlightNode(tree.right, value, graphics);
-  }
   update() {}
 }
