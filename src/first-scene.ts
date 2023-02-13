@@ -25,7 +25,8 @@ export class BST {
     value: number,
     tree: BST | null,
     startX: number = -1,
-    startY: number = -1
+    startY: number = -1,
+    depth: number = 0
   ): BST {
     // Write your code here.
     // Do not edit the return statement of this method.
@@ -35,22 +36,36 @@ export class BST {
         return new BST(
           value,
           this.scene,
-          startX > 0 ? startX : this.x - 50,
-          startY > 0 ? startY : this.y + 50
+          startX > 0 ? startX : this.x - 100,
+          startY > 0 ? startY : this.y + 100
         );
       else
         return new BST(
           value,
           this.scene,
-          startX > 0 ? startX : this.x + 50,
-          startY > 0 ? startY : this.y + 50
+          startX > 0 ? startX : this.x + 100,
+          startY > 0 ? startY : this.y + 100
         );
     }
 
+    depth++;
+
     if (value < tree.value) {
-      tree.left = this.insert(value, tree.left, tree.x - 50, tree.y + 50);
+      tree.left = this.insert(
+        value,
+        tree.left,
+        tree.x - Math.floor(150 / (depth || 1)),
+        tree.y + 100,
+        depth
+      );
     } else {
-      tree.right = this.insert(value, tree.right, tree.x + 50, tree.y + 50);
+      tree.right = this.insert(
+        value,
+        tree.right,
+        tree.x + Math.floor(150 / (depth || 1)),
+        tree.y + 100,
+        depth
+      );
     }
 
     return tree;
@@ -78,14 +93,20 @@ export class BST {
   ) {
     if (!root) return;
 
+    this.highlightNode(root);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    this.unhighlightNode(root);
+
     await this.inOrderTraversal(root.left, maxDepth, currentDepth + 1);
-    root.circle.setFillStyle(0xffff00, 1);
+
+    this.highlightNode(root);
     await new Promise((resolve) => setTimeout(resolve, 500));
-    root.circle.setFillStyle(0xff0000, 1);
+    this.unhighlightNode(root);
+
     await this.inOrderTraversal(root.right, maxDepth, currentDepth + 1);
-    root.circle.setFillStyle(0xffff00, 1);
+    this.highlightNode(root);
     await new Promise((resolve) => setTimeout(resolve, 500));
-    root.circle.setFillStyle(0xff0000, 1);
+    this.unhighlightNode(root);
   }
 
   contains(value: number) {
@@ -126,13 +147,17 @@ export class FirstGameScene extends Phaser.Scene {
 
   create() {
     // Create the initial tree using the BST class
-    const tree = new BST(50, this, 300, 300);
+    const tree = new BST(50, this, 300, 100);
     tree.insert(20, tree);
     tree.insert(10, tree);
     tree.insert(30, tree);
     tree.insert(40, tree);
-    tree.insert(60, tree);
+    tree.insert(55, tree);
     tree.insert(70, tree);
+    tree.insert(54, tree);
+    tree.insert(53, tree);
+    tree.insert(35, tree);
+    tree.insert(60, tree);
     tree.insert(80, tree);
 
     const maxDepth = tree.maxDepth(tree);
