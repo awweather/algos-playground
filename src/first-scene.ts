@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 
+const speed = 100;
+
 export class BST {
   value: number;
   left: BST | null;
@@ -18,16 +20,21 @@ export class BST {
     this.scene = scene;
 
     this.circle = scene.add.circle(this.x, this.y, 20, 0xff0000);
+
+    this.circle.setInteractive().on("pointerup", () => {
+      this.remove(this.value, this);
+    });
+
     scene.add.text(this.x, this.y, this.value.toString());
   }
 
-  insert(
+  async insert(
     value: number,
     tree: BST | null,
     startX: number = -1,
     startY: number = -1,
     depth: number = 0
-  ): BST {
+  ): Promise<BST> {
     // Write your code here.
     // Do not edit the return statement of this method.
 
@@ -51,7 +58,10 @@ export class BST {
     depth++;
 
     if (value < tree.value) {
-      tree.left = this.insert(
+      this.highlightNode(tree);
+      await new Promise((resolve) => setTimeout(resolve, speed));
+      this.unhighlightNode(tree);
+      tree.left = await this.insert(
         value,
         tree.left,
         tree.x - Math.floor(150 / (depth || 1)),
@@ -59,7 +69,10 @@ export class BST {
         depth
       );
     } else {
-      tree.right = this.insert(
+      this.highlightNode(tree);
+      await new Promise((resolve) => setTimeout(resolve, speed));
+      this.unhighlightNode(tree);
+      tree.right = await this.insert(
         value,
         tree.right,
         tree.x + Math.floor(150 / (depth || 1)),
@@ -87,18 +100,18 @@ export class BST {
 
     array.push(root.value);
     this.highlightNode(root);
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, speed));
     this.unhighlightNode(root);
 
     await this.preOrderTraversal(root.left, maxDepth, currentDepth + 1, array);
 
     this.highlightNode(root);
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, speed));
     this.unhighlightNode(root);
 
     await this.preOrderTraversal(root.right, maxDepth, currentDepth + 1, array);
     this.highlightNode(root);
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, speed));
     this.unhighlightNode(root);
 
     return array;
@@ -113,7 +126,7 @@ export class BST {
 
     if (currentDepth !== 0) {
       this.highlightNode(root);
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, speed));
       this.unhighlightNode(root);
     }
 
@@ -121,7 +134,7 @@ export class BST {
 
     if (currentDepth !== 0) {
       this.highlightNode(root);
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, speed));
       this.unhighlightNode(root);
     }
 
@@ -132,7 +145,7 @@ export class BST {
       array
     );
     this.highlightNode(root);
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, speed));
     this.unhighlightNode(root);
 
     array.push(root.value);
@@ -153,23 +166,23 @@ export class BST {
   ): Promise<number[]> {
     if (!root) return array;
 
-    if (currentDepth !== 0) {
-      this.highlightNode(root);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      this.unhighlightNode(root);
-    }
+    // if (currentDepth !== 0) {
+    //   this.highlightNode(root);
+    //   await new Promise((resolve) => setTimeout(resolve, speed));
+    //   this.unhighlightNode(root);
+    // }
 
     await this.inOrderTraversal(root.left, maxDepth, currentDepth + 1, array);
 
     this.highlightNode(root);
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, speed));
     this.unhighlightNode(root);
 
     array.push(root.value);
     await this.inOrderTraversal(root.right, maxDepth, currentDepth + 1, array);
     if (currentDepth !== 0) {
       this.highlightNode(root);
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, speed));
       this.unhighlightNode(root);
     }
 
@@ -181,9 +194,47 @@ export class BST {
     return false;
   }
 
-  remove(value: number): BST {
+  remove(value: number, tree: BST | null): BST | null {
     // Write your code here.
     // Do not edit the return statement of this method.
+    if (!tree) return tree;
+
+    if (value < tree.value) {
+      tree.left = this.remove(value, tree.left);
+    } else if (value > tree.value) {
+      tree.right = this.remove(value, tree.right);
+    } else {
+      // has no children, delete
+      if (!tree.left && !tree.right) {
+        return null;
+      }
+
+      if (tree.left && !tree.right) {
+        tree.value = tree.left.value;
+        tree.right = tree.left.right;
+        tree.left = tree.left.left;
+        return tree;
+      }
+
+      if (!tree.left && tree.right) {
+        tree.value = tree.right.value;
+        tree.left = tree.right.left;
+        tree.right = tree.right.right;
+        return tree;
+      }
+
+      if (tree.left && tree.right) {
+        function smallestValue(tree: BST): number {
+          return !tree.left ? tree.value : smallestValue(tree);
+        }
+
+        const smallest = smallestValue(tree.right);
+        tree.value = smallest;
+        tree.right = this.remove(smallest, tree.right);
+        return tree;
+      }
+    }
+
     return this;
   }
 }
@@ -215,25 +266,53 @@ export class FirstGameScene extends Phaser.Scene {
   async create() {
     // Create the initial tree using the BST class
     const tree = new BST(50, this, 300, 100);
-    tree.insert(20, tree);
-    tree.insert(10, tree);
-    tree.insert(30, tree);
-    tree.insert(40, tree);
-    tree.insert(55, tree);
-    tree.insert(70, tree);
-    tree.insert(54, tree);
-    tree.insert(53, tree);
-    tree.insert(35, tree);
-    tree.insert(60, tree);
-    tree.insert(80, tree);
+    await tree.insert(20, tree);
+    await tree.insert(10, tree);
+    await tree.insert(30, tree);
+    await tree.insert(40, tree);
+    await tree.insert(55, tree);
+    await tree.insert(70, tree);
+    await tree.insert(54, tree);
+    await tree.insert(53, tree);
+    await tree.insert(35, tree);
+    await tree.insert(60, tree);
+    await tree.insert(80, tree);
 
-    const maxDepth = tree.maxDepth(tree);
-    // const result = await tree.inOrderTraversal(tree, maxDepth, 0, []);
+    this.add
+      .text(25, 25, "Insert Random")
+      .setInteractive()
+      .on("pointerup", () => {
+        const number = Phaser.Math.Between(1, 100);
+        tree.insert(number, tree);
+      });
+    this.add
+      .text(225, 25, "Inorder Traversal")
+      .setInteractive()
+      .on("pointerup", async () => {
+        const maxDepth = tree.maxDepth(tree);
+        const result = await tree.inOrderTraversal(tree, maxDepth, 0, []);
+        console.log(result);
+      });
+    this.add
+      .text(425, 25, "Preorder Traversal")
+      .setInteractive()
+      .on("pointerup", async () => {
+        const maxDepth = tree.maxDepth(tree);
+        const result = await tree.preOrderTraversal(tree, maxDepth, 0, []);
+        console.log(result);
+      });
 
-    // const result = await tree.postOrderTraversal(tree, maxDepth, 0, []);
+    this.add
+      .text(625, 25, "Postorder Traversal")
+      .setInteractive()
+      .on("pointerup", async () => {
+        const maxDepth = tree.maxDepth(tree);
+        const result = await tree.postOrderTraversal(tree, maxDepth, 0, []);
+        console.log(result);
+      });
 
-    const result = await tree.preOrderTraversal(tree, maxDepth, 0, []);
-    console.log(result);
+    // const result = await tree.preOrderTraversal(tree, maxDepth, 0, []);
+    // console.log(result);
 
     // Create the graphical representation of the tree
 
