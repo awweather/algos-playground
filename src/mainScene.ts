@@ -182,11 +182,6 @@ export class BST {
     return array;
   }
 
-  contains(value: number) {
-    // Write your code here.
-    return false;
-  }
-
   remove(value: number, tree: BST | null): BST | null {
     // Write your code here.
     // Do not edit the return statement of this method.
